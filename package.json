@@ -1,0 +1,39 @@
+{
+  "name": "feishu-print-dock",
+  "version": "1.0.0",
+  "private": true,
+  "description": "飞书多维表格边栏插件「打印台」：标签排版打印 / Word 模板套打 / 排版写回附件",
+  "output": "dist",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@lark-base-open/js-sdk": "^1.0.2",
+    "docx-preview": "^0.3.6",
+    "docxtemplater": "^3.66.2",
+    "html2canvas": "^1.4.1",
+    "i18next": "^25.5.3",
+    "jspdf": "^3.0.3",
+    "pizzip": "^3.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^16.2.4"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^5.0.4",
+    "jsdom": "^27.0.0",
+    "jsqr": "1.4.0",
+    "pngjs": "6.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12",
+    "vitest": "^3.2.4"
+  }
+}

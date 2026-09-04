@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>打印台</title>
+    <style>
+      /* 打印样式：屏幕隐藏配置区，仅打印排版区；@page A4 */
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        .print-area,
+        .print-area * {
+          visibility: visible;
+        }
+        .print-area {
+          position: absolute;
+          left: 0;
+          top: 0;
+        }
+        .print-page {
+          box-shadow: none !important;
+          margin: 0 !important;
+        }
+      }
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      }
+      button {
+        padding: 6px 14px;
+        border: 1px solid var(--pd-border, #dee0e3);
+        border-radius: 6px;
+        background: var(--pd-primary, rgb(20, 86, 240));
+        color: #fff;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      select,
+      input[type='number'],
+      input[type='text'] {
+        padding: 4px 8px;
+        border: 1px solid var(--pd-border, #dee0e3);
+        border-radius: 4px;
+        background: var(--pd-bg, #fff);
+        color: var(--pd-text, #1f2329);
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-DAh6k_L5.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

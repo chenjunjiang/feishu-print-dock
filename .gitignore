@@ -1,0 +1,3 @@
+node_modules/
+.DS_Store
+# 注意：dist 必须提交（官方静态托管契约：package.json.output=dist，审核直接部署产物）
