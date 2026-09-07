@@ -145,7 +145,8 @@ export default function LabelPrint({ baseId, tableId }: { baseId: string; tableI
       const pages = printRef.current.querySelectorAll<HTMLElement>('[data-page]');
       let total = 0;
       for (let i = 0; i < pages.length; i++) {
-        const canvas = await html2canvas(pages[i], { scale: HTML2CANVAS_SCALE, backgroundColor: '#ffffff' });
+        // useCORS: true 必填——附件 tmp URL 跨域（实测 ACAO:*），默认 false 时 html2canvas 静默丢图
+        const canvas = await html2canvas(pages[i], { scale: HTML2CANVAS_SCALE, backgroundColor: '#ffffff', useCORS: true });
         const img = canvas.toDataURL('image/jpeg', 0.85);
         if (i > 0) pdf.addPage('a4', 'portrait');
         pdf.addImage(img, 'JPEG', 0, 0, A4_W_MM, A4_H_MM);
@@ -174,7 +175,7 @@ export default function LabelPrint({ baseId, tableId }: { baseId: string; tableI
       const wbItems = [];
       for (const cell of Array.from(cells)) {
         const recordId = cell.dataset.cellRecord!;
-        const canvas = await html2canvas(cell, { scale: HTML2CANVAS_SCALE, backgroundColor: '#ffffff' });
+        const canvas = await html2canvas(cell, { scale: HTML2CANVAS_SCALE, backgroundColor: '#ffffff', useCORS: true });
         const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/png'));
         if (!blob) continue;
         const item = items.find((it) => it.recordId === recordId)!;

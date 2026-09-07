@@ -219,7 +219,8 @@ export default function WordMerge({ baseId, tableId }: { baseId: string; tableId
         document.body.appendChild(holder);
         try {
           await renderAsync(f.docx.buffer as ArrayBuffer, holder);
-          const canvas = await html2canvas(holder, { scale: 1.5, backgroundColor: '#ffffff' });
+          // useCORS: true 防御性统一——docx 内嵌图为 blob: 不受影响，外链图防静默丢图
+          const canvas = await html2canvas(holder, { scale: 1.5, backgroundColor: '#ffffff', useCORS: true });
           const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/png'));
           if (blob) {
             wbItems.push({ recordId: f.recordId, files: [{ name: safeFileName(f.title, '套打-p1', 'png'), blob }] });
