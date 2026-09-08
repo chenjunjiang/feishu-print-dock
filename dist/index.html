@@ -23,6 +23,14 @@
           box-shadow: none !important;
           margin: 0 !important;
         }
+        /* 套打预览在屏幕上被 fitDocxPreview 缩放/收高；打印时必须还原，否则打印输出是缩小裁切版 */
+        .print-area .docx-wrapper {
+          transform: none !important;
+        }
+        .print-area[style*='height'] {
+          height: auto !important;
+          overflow: visible !important;
+        }
       }
       @page {
         size: A4 portrait;
@@ -60,7 +68,7 @@
         gap: 4px;
       }
     </style>
-    <script type="module" crossorigin src="./assets/index-D-3udQS_.js"></script>
+    <script type="module" crossorigin src="./assets/index-BB5hnzmJ.js"></script>
   </head>
   <body>
     <div id="root"></div>

@@ -6,6 +6,7 @@ import PizZip from 'pizzip';
 import { renderAsync } from 'docx-preview';
 import html2canvas from 'html2canvas';
 import { extractTags, fillTemplate } from '../engine/template';
+import { fitDocxPreview } from '../engine/fitPreview';
 import { serializeValue, FieldTypeName, SERIALIZABLE_TYPES } from '../engine/serialize';
 import { getSelectedRecordIds, MAX_BATCH_B, MAX_BATCH_C, safeFileName, recordTitleOf } from '../records';
 import { writeBackBatch, AttachmentFieldLike } from '../writeback';
@@ -176,7 +177,9 @@ export default function WordMerge({ baseId, tableId }: { baseId: string; tableId
       const filled = await fillForRecords(true);
       if (!filled || filled.length === 0 || !previewRef.current) return;
       previewRef.current.innerHTML = '';
+      previewRef.current.style.height = ''; // 清掉上次缩放留下的固定高度
       await renderAsync(filled[0].docx.buffer as ArrayBuffer, previewRef.current);
+      fitDocxPreview(previewRef.current); // A4 实宽缩进面板，防 flex 居中裁左
     } catch (e) {
       setError(String(e).slice(0, 150));
     } finally {
