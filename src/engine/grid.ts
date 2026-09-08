@@ -77,6 +77,36 @@ export function computeGrid(spec: GridSpec, items: number): GridLayout {
   return { cells, pageCount: Math.max(1, Math.ceil(items / perPage)), cellW, cellH };
 }
 
+/** 单格尺寸（mm）：给用户实时反馈标签实际大小 */
+export function cellSizeMm(spec: GridSpec): { w: number; h: number } {
+  return {
+    w: (A4_W_MM - 2 * spec.marginMm - (spec.cols - 1) * spec.gapMm) / spec.cols,
+    h: (A4_H_MM - 2 * spec.marginMm - (spec.rows - 1) * spec.gapMm) / spec.rows,
+  };
+}
+
+/** 条码可读性下限：单格宽 < 40mm 时 EAN-13/Code128 缩放后可能扫不出（实测经验值） */
+export const BARCODE_MIN_CELL_W_MM = 40;
+
+/** 单格是否过窄（触发警告提示，不阻断——QR 等大容错码型仍可用） */
+export function isCellTooNarrow(spec: GridSpec): boolean {
+  return cellSizeMm(spec).w < BARCODE_MIN_CELL_W_MM;
+}
+
+/**
+ * 常用 A4 标签纸预设（rows × cols），兼容 validateGrid 的 1-20 约束。
+ * 用户心智是"我买的 N 格标签纸"，不是行列数——预设按市面常见规格给。
+ */
+export const LABEL_PRESETS: { rows: number; cols: number }[] = [
+  { rows: 1, cols: 3 }, // 3 格：大标签/资产牌
+  { rows: 2, cols: 5 }, // 10 格
+  { rows: 4, cols: 4 }, // 16 格（默认规格）
+  { rows: 3, cols: 7 }, // 21 格
+  { rows: 3, cols: 8 }, // 24 格
+  { rows: 5, cols: 8 }, // 40 格
+  { rows: 5, cols: 13 }, // 65 格（小格，触发过窄警告）
+];
+
 /** mm -> CSS px（排版渲染用；分页舍入误差：同页统一 round 防累计漂移） */
 export function mmToPx(mm: number): number {
   return Math.round(mm * MM_TO_CSS_PX * 100) / 100;

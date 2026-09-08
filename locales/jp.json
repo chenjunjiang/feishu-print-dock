@@ -13,10 +13,8 @@
   "common.storageDegraded": "ストレージ制限のため設定は保存されません（JSON でバックアップ可）",
   "label.imageField": "ラベル画像フィールド（添付）",
   "label.titleField": "タイトルフィールド（任意）",
-  "label.rows": "行数",
-  "label.cols": "列数",
-  "label.margin": "余白 (mm)",
-  "label.gap": "間隔 (mm)",
+  "label.margin": "ページ余白 (mm)",
+  "label.gap": "ラベル間隔 (mm)",
   "label.border": "ラベル枠を表示",
   "label.multiAttachment": "セルに複数画像がある場合は 1 枚目のみ使用",
   "label.pdfNote": "ダウンロード PDF は画像型です（文字選択不可）。検索可能な PDF は「印刷 → PDF として保存」をご利用ください",
@@ -30,5 +28,11 @@
   "writeback.confirm": "このプラグイン以外の添付を含むレコードがあります。書き戻すと既存の添付が置き換えられます。続行しますか？",
   "writeback.progress": "書き戻し進行",
   "writeback.failed": "失敗項目",
-  "writeback.done": "完了"
+  "writeback.done": "完了",
+  "label.preset": "ラベル用紙プリセット",
+  "label.presetCustom": "カスタム行列",
+  "label.layout": "1ページのラベル数",
+  "label.perSheet": " マス/枚",
+  "label.cellSize": "マスサイズ",
+  "label.tooNarrow": "マス幅が 40mm 未満です。バーコードが読み取れない可能性があります"
 }

@@ -13,10 +13,8 @@
   "common.storageDegraded": "当前环境存储受限，配置不会被保存（可导出 JSON 备份）",
   "label.imageField": "标签图片字段（附件）",
   "label.titleField": "标题字段（可选）",
-  "label.rows": "行数",
-  "label.cols": "列数",
-  "label.margin": "页边距 (mm)",
-  "label.gap": "间距 (mm)",
+  "label.margin": "页面边距 (mm)",
+  "label.gap": "标签间距 (mm)",
   "label.border": "显示标签边框",
   "label.multiAttachment": "附件字段有多张图时仅使用第 1 张",
   "label.pdfNote": "下载的 PDF 为图片型（文字不可选）；需要可检索文字请用「打印 → 另存为 PDF」",
@@ -30,5 +28,11 @@
   "writeback.confirm": "以下记录含非本插件附件，写回将替换现有附件，确认继续？",
   "writeback.progress": "写回进度",
   "writeback.failed": "失败项",
-  "writeback.done": "完成"
+  "writeback.done": "完成",
+  "label.preset": "标签纸预设",
+  "label.presetCustom": "自定义行列",
+  "label.layout": "每页标签排版",
+  "label.perSheet": " 格/页",
+  "label.cellSize": "单格尺寸",
+  "label.tooNarrow": "单格宽度小于 40mm，条码可能无法扫描，请减少列数或改大格预设"
 }

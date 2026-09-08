@@ -11,6 +11,9 @@ import {
   GridSpec,
   computeGrid,
   validateGrid,
+  cellSizeMm,
+  isCellTooNarrow,
+  LABEL_PRESETS,
   mmToPx,
 } from '../engine/grid';
 import { getSelectedRecordIds, makeAttachmentUrlCache, fetchImageBlob, MAX_SELECTED_A, safeFileName, recordTitleOf } from '../records';
@@ -210,6 +213,21 @@ export default function LabelPrint({ baseId, tableId }: { baseId: string; tableI
     </label>
   );
 
+  // 排版区：预设匹配（当前行列数等于某预设则高亮该预设，否则"自定义"）
+  const presetMatch = LABEL_PRESETS.findIndex((p) => p.rows === spec.rows && p.cols === spec.cols);
+  const cell = cellSizeMm(spec);
+  const tooNarrow = isCellTooNarrow(spec);
+  const gridInput = (key: 'rows' | 'cols') => (
+    <input
+      type="number"
+      min={1}
+      max={20}
+      value={spec[key]}
+      onChange={(e) => setSpec({ ...spec, [key]: Number(e.target.value) })}
+      style={{ width: 56 }}
+    />
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 8 }}>
       <label>
@@ -231,8 +249,34 @@ export default function LabelPrint({ baseId, tableId }: { baseId: string; tableI
         </select>
       </label>
       <div style={{ fontSize: 12, color: 'var(--pd-text-secondary)' }}>{t('label.multiAttachment')}</div>
-      {numberInput(t('label.rows'), 'rows', 1, 20)}
-      {numberInput(t('label.cols'), 'cols', 1, 20)}
+      {/* 标签纸预设：用户心智是"买的 N 格标签纸"，选预设自动填行列数 */}
+      <label>
+        {t('label.preset')}
+        <select
+          value={presetMatch}
+          onChange={(e) => {
+            const i = Number(e.target.value);
+            if (i >= 0) setSpec({ ...spec, rows: LABEL_PRESETS[i].rows, cols: LABEL_PRESETS[i].cols });
+          }}
+          style={{ width: '100%' }}
+        >
+          <option value={-1}>{t('label.presetCustom')}</option>
+          {LABEL_PRESETS.map((p, i) => (
+            <option key={i} value={i}>{`${p.rows}×${p.cols}（${p.rows * p.cols}${t('label.perSheet')}）`}</option>
+          ))}
+        </select>
+      </label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '6px 0' }}>
+        <span>{t('label.layout')}</span>
+        {gridInput('rows')} × {gridInput('cols')}
+      </div>
+      {/* 实时反馈：每页张数 + 单格实际尺寸；过窄时警告条码可能扫不出 */}
+      <div style={{ fontSize: 12, color: 'var(--pd-text-secondary)' }}>
+        {`= ${spec.rows * spec.cols}${t('label.perSheet')}，${t('label.cellSize')} ${cell.w.toFixed(1)} × ${cell.h.toFixed(1)} mm`}
+      </div>
+      {tooNarrow && (
+        <div style={{ fontSize: 12, color: 'var(--pd-warning, #d97706)' }}>{t('label.tooNarrow')}</div>
+      )}
       {numberInput(t('label.margin'), 'marginMm', 0, 30)}
       {numberInput(t('label.gap'), 'gapMm', 0, 20)}
       <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>

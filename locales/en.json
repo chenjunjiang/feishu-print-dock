@@ -13,10 +13,8 @@
   "common.storageDegraded": "Storage is limited; config will not be saved (export JSON as backup)",
   "label.imageField": "Label image field (attachment)",
   "label.titleField": "Title field (optional)",
-  "label.rows": "Rows",
-  "label.margin": "Margin (mm)",
-  "label.cols": "Columns",
-  "label.gap": "Gap (mm)",
+  "label.margin": "Page margin (mm)",
+  "label.gap": "Label gap (mm)",
   "label.border": "Show label borders",
   "label.multiAttachment": "Only the first image is used when a cell has multiple attachments",
   "label.pdfNote": "Downloaded PDF is image-based (text not selectable); use Print → Save as PDF for searchable text",
@@ -30,5 +28,11 @@
   "writeback.confirm": "These records contain attachments not created by this plugin. Writing back will replace them. Continue?",
   "writeback.progress": "Write-back progress",
   "writeback.failed": "Failed items",
-  "writeback.done": "Done"
+  "writeback.done": "Done",
+  "label.preset": "Label sheet preset",
+  "label.presetCustom": "Custom grid",
+  "label.layout": "Labels per page",
+  "label.perSheet": " /sheet",
+  "label.cellSize": "cell size",
+  "label.tooNarrow": "Cell width under 40mm — barcodes may become unscannable. Use fewer columns or a larger-cell preset."
 }

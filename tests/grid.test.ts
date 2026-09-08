@@ -76,3 +76,30 @@ describe('换算与 dpi 常量', () => {
     expect(mmToPx(A4_W_MM)).toBeCloseTo(793.7, 0);
   });
 });
+
+// 标签纸预设/单格尺寸/过窄警告（UX 改进：单格尺寸实时反馈 + 条码可读性防线）
+import { cellSizeMm, isCellTooNarrow, LABEL_PRESETS, BARCODE_MIN_CELL_W_MM } from '../src/engine/grid';
+
+describe('cellSizeMm / isCellTooNarrow / LABEL_PRESETS', () => {
+  it('默认 4×4 规格：单格 = (210-20-3*2)/4 × (297-20-3*2)/4 = 46×67.75', () => {
+    const s = cellSizeMm({ rows: 4, cols: 4, marginMm: 10, gapMm: 2 });
+    expect(s.w).toBeCloseTo(46, 5);
+    expect(s.h).toBeCloseTo(67.75, 5);
+  });
+  it('5×13（65 格）触发过窄警告；4×4 不触发', () => {
+    expect(isCellTooNarrow({ rows: 5, cols: 13, marginMm: 10, gapMm: 2 })).toBe(true);
+    expect(isCellTooNarrow({ rows: 4, cols: 4, marginMm: 10, gapMm: 2 })).toBe(false);
+  });
+  it('预设全部通过 validateGrid 约束', () => {
+    for (const p of LABEL_PRESETS) {
+      expect(validateGrid({ ...p, marginMm: 10, gapMm: 2 })).toBeNull();
+    }
+  });
+  it('过窄判定阈值与常量一致（边界 40mm）', () => {
+    // 构造单格宽恰为 40mm：cols=4.55 不可行（整数约束），验证 < 40 才为 true
+    const spec = { rows: 1, cols: 4, marginMm: 10, gapMm: 0 };
+    // cellW = (210-20)/4 = 47.5 → 不窄
+    expect(isCellTooNarrow(spec)).toBe(false);
+    expect(BARCODE_MIN_CELL_W_MM).toBe(40);
+  });
+});
