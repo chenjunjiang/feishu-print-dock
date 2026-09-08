@@ -11,6 +11,10 @@ import WordMerge from './views/WordMerge';
 
 initI18n('zh');
 
+// 打印前滚动归零：Safari 按 iframe 当前滚动位置裁剪打印内容（滚到底打印 → 只剩末行入纸）。
+// Chrome 不受滚动影响，但加了无害且防回归。
+window.addEventListener('beforeprint', () => window.scrollTo(0, 0));
+
 function App() {
   const { t } = useTranslation();
   useTheme();
