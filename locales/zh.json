@@ -34,5 +34,7 @@
   "label.layout": "每页标签排版",
   "label.perSheet": " 格/页",
   "label.cellSize": "单格尺寸",
-  "label.tooNarrow": "单格宽度小于 40mm，条码可能无法扫描，请减少列数或改大格预设"
+  "label.tooNarrow": "单格宽度小于 40mm，条码可能无法扫描，请减少列数或改大格预设",
+  "label.skippedNoImage": "已跳过 {{count}} 条无图记录",
+  "label.noRenderable": "选中记录的附件字段均无图片，没有可排版的内容"
 }

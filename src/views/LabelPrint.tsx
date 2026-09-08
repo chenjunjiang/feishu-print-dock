@@ -16,7 +16,7 @@ import {
   LABEL_PRESETS,
   mmToPx,
 } from '../engine/grid';
-import { getSelectedRecordIds, makeAttachmentUrlCache, fetchImageBlob, MAX_SELECTED_A, safeFileName, recordTitleOf } from '../records';
+import { getSelectedRecordIds, makeAttachmentUrlCache, fetchImageBlob, MAX_SELECTED_A, safeFileName, recordTitleOf, partitionRenderable } from '../records';
 import { writeBackBatch, AttachmentFieldLike } from '../writeback';
 import { serializeValue, FieldTypeName } from '../engine/serialize';
 import { configKey, loadConfig, saveConfig } from '../persist';
@@ -110,7 +110,8 @@ export default function LabelPrint({ baseId, tableId }: { baseId: string; tableI
         titleField = (await table.getField(titleFieldId)) as unknown as { getValue(recordOrId: string): Promise<unknown>; type?: number };
       }
       for (const recordId of sel.recordIds) {
-        let title = recordId.slice(-6);
+        // 标题：选了标题字段但值为空 -> 留空（不显示 recordId 乱码短码）；未选字段也不显示
+        let title = '';
         if (titleField) {
           try {
             const raw = await titleField.getValue(recordId);
@@ -118,14 +119,22 @@ export default function LabelPrint({ baseId, tableId }: { baseId: string; tableI
             const ser = serializeValue(typeName, raw);
             if (ser.ok && ser.text.trim()) title = ser.text.trim();
           } catch {
-            /* 标题读取失败用 recordId 短码 */
+            /* 标题读取失败留空 */
           }
         }
         const imgUrl = await urlCache.get(recordId, imgField);
         out.push({ recordId, title, imgUrl });
       }
       urlCache.revokeAll();
-      setItems(out);
+      // 无图记录不进排版（避免打出 "no image" 空白标签），跳过数量显式提示
+      const { ok: renderable, skipped } = partitionRenderable(out);
+      if (renderable.length === 0) {
+        setError(t('label.noRenderable'));
+        setItems(null);
+        return;
+      }
+      if (skipped.length > 0) setWriteBackStatus(t('label.skippedNoImage', { count: skipped.length }));
+      setItems(renderable);
     } catch (e) {
       setError(String(e).slice(0, 150));
     } finally {

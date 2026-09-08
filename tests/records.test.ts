@@ -103,3 +103,25 @@ describe('recordTitleOf / safeFileName', () => {
     expect(safeFileName('中文标题超长'.repeat(20), 'label', 'png').length).toBeLessThanOrEqual(40 + '-label.png'.length + 10);
   });
 });
+
+// partitionRenderable：无图记录跳过（防 "no image" 空白标签上纸）
+import { partitionRenderable } from '../src/records';
+
+describe('partitionRenderable', () => {
+  it('有图进 ok，无图（null）进 skipped，顺序保持', () => {
+    const items = [
+      { recordId: 'a', imgUrl: 'https://x/1.png' },
+      { recordId: 'b', imgUrl: null },
+      { recordId: 'c', imgUrl: 'https://x/2.png' },
+      { recordId: 'd', imgUrl: null },
+    ];
+    const r = partitionRenderable(items);
+    expect(r.ok.map((i) => i.recordId)).toEqual(['a', 'c']);
+    expect(r.skipped.map((i) => i.recordId)).toEqual(['b', 'd']);
+  });
+  it('全有图 / 全无图边界', () => {
+    const all = [{ imgUrl: 'u' }, { imgUrl: 'u2' }];
+    expect(partitionRenderable(all).skipped).toEqual([]);
+    expect(partitionRenderable([{ imgUrl: null }]).ok).toEqual([]);
+  });
+});

@@ -108,6 +108,17 @@ export function recordTitleOf(recordId: string, primaryValue: unknown): string {
   return recordId.slice(-6);
 }
 
+/**
+ * 排版可渲染性分区：无图记录不进排版（否则打印出 "no image" 空白标签浪费纸）。
+ * 返回 { ok: 可渲染, skipped: 无图被跳过 }，调用方负责提示跳过数量。
+ */
+export function partitionRenderable<T extends { imgUrl: string | null }>(items: T[]): { ok: T[]; skipped: T[] } {
+  const ok: T[] = [];
+  const skipped: T[] = [];
+  for (const it of items) (it.imgUrl ? ok : skipped).push(it);
+  return { ok, skipped };
+}
+
 /** 写回文件名（Unicode 保留；ZIP 路径与附件名安全字符） */
 export function safeFileName(title: string, suffix: string, ext: string): string {
   const cleaned = title

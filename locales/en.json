@@ -34,5 +34,7 @@
   "label.layout": "Labels per page",
   "label.perSheet": " /sheet",
   "label.cellSize": "cell size",
-  "label.tooNarrow": "Cell width under 40mm — barcodes may become unscannable. Use fewer columns or a larger-cell preset."
+  "label.tooNarrow": "Cell width under 40mm — barcodes may become unscannable. Use fewer columns or a larger-cell preset.",
+  "label.skippedNoImage": "Skipped {{count}} records with no image",
+  "label.noRenderable": "None of the selected records have an image in the attachment field"
 }

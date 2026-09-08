@@ -34,5 +34,7 @@
   "label.layout": "1ページのラベル数",
   "label.perSheet": " マス/枚",
   "label.cellSize": "マスサイズ",
-  "label.tooNarrow": "マス幅が 40mm 未満です。バーコードが読み取れない可能性があります"
+  "label.tooNarrow": "マス幅が 40mm 未満です。バーコードが読み取れない可能性があります",
+  "label.skippedNoImage": "画像なしの {{count}} 件をスキップしました",
+  "label.noRenderable": "選択したレコードの添付フィールドに画像がありません"
 }
