@@ -139,9 +139,25 @@ describe('parseNumeric 宽松数字化', () => {
     expect(parseNumeric('   ')).toBeNull();
     expect(parseNumeric('abc')).toBeNull();
   });
-  it('null/undefined/对象 -> null', () => {
+  it('null/undefined/无值对象 -> null', () => {
     expect(parseNumeric(null)).toBeNull();
     expect(parseNumeric(undefined)).toBeNull();
-    expect(parseNumeric({ type: 20, value: 18 })).toBeNull();
+    expect(parseNumeric({ type: 20 })).toBeNull(); // 无 text/value 可取
+  });
+});
+
+describe('parseNumeric 公式字段形态（js-sdk IOpenFormulaFuncCellValue）', () => {
+  it('数值公式数字数组 [18] -> 18；空数组 -> null', () => {
+    expect(parseNumeric([18])).toBe(18);
+    expect(parseNumeric([36.5])).toBe(36.5);
+    expect(parseNumeric([])).toBeNull();
+  });
+  it('富文本段数组 [{type,text}] -> 段文本数字化', () => {
+    expect(parseNumeric([{ type: 'text', text: '18' }])).toBe(18);
+    expect(parseNumeric([{ type: 'text', text: '¥36.00' }])).toBeNull(); // 带符号非纯数字不硬解
+  });
+  it('包装对象 {value:18} -> 18', () => {
+    expect(parseNumeric({ value: 18 })).toBe(18);
+    expect(parseNumeric({ value: '18' })).toBe(18);
   });
 });

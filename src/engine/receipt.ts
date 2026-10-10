@@ -98,7 +98,9 @@ export function generateOrderNo(now: Date = new Date()): string {
 
 /**
  * 宽松数字化：SDK 字段值 -> number | null。
- * 实测形态：数字字段可能返回 number 或字符串 "18"（OpenAPI 形态），公式字段返回 number；
+ * 实测/js-sdk 类型确证的形态：数字字段 number 或字符串 "18"；
+ * 公式字段（js-sdk IOpenFormulaFuncCellValue）= number | string | number[] | 富文本段数组——
+ * 数值公式可能返回 [18] 数字数组，段数组取 text 拼接；
  * 空串/纯空白/非数字/无限值一律 null（由 buildReceipt 跳过并计数）
  */
 export function parseNumeric(raw: unknown): number | null {
@@ -108,6 +110,15 @@ export function parseNumeric(raw: unknown): number | null {
     if (s === '') return null;
     const n = Number(s);
     return Number.isFinite(n) ? n : null;
+  }
+  if (Array.isArray(raw)) {
+    if (raw.length === 0) return null;
+    return parseNumeric(raw[0]); // number[] 或段数组：取首项递归
+  }
+  if (raw && typeof raw === 'object') {
+    const o = raw as Record<string, unknown>;
+    if (typeof o.text === 'string') return parseNumeric(o.text); // 富文本段 {type,text}
+    if (typeof o.value !== 'undefined') return parseNumeric(o.value); // 防包装 {value}
   }
   return null;
 }
