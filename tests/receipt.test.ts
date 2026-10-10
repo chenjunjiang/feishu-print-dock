@@ -147,6 +147,11 @@ describe('parseNumeric 宽松数字化', () => {
 });
 
 describe('parseNumeric 公式字段形态（js-sdk IOpenFormulaFuncCellValue）', () => {
+  it('实测锚定：货币格式化串 "¥18.00" -> 18（用户出库表诊断真实形态）', () => {
+    expect(parseNumeric('¥18.00')).toBe(18);
+    expect(parseNumeric('¥36.00')).toBe(36);
+    expect(parseNumeric('¥1,234.50')).toBe(1234.5); // 千分位
+  });
   it('数值公式数字数组 [18] -> 18；空数组 -> null', () => {
     expect(parseNumeric([18])).toBe(18);
     expect(parseNumeric([36.5])).toBe(36.5);
@@ -154,7 +159,7 @@ describe('parseNumeric 公式字段形态（js-sdk IOpenFormulaFuncCellValue）'
   });
   it('富文本段数组 [{type,text}] -> 段文本数字化', () => {
     expect(parseNumeric([{ type: 'text', text: '18' }])).toBe(18);
-    expect(parseNumeric([{ type: 'text', text: '¥36.00' }])).toBeNull(); // 带符号非纯数字不硬解
+    expect(parseNumeric([{ type: 'text', text: '¥36.00' }])).toBe(36); // 带货币符号的段文本（实测形态）剥符号后数字化
   });
   it('包装对象 {value:18} -> 18', () => {
     expect(parseNumeric({ value: 18 })).toBe(18);

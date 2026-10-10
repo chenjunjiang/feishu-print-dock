@@ -106,7 +106,8 @@ export function generateOrderNo(now: Date = new Date()): string {
 export function parseNumeric(raw: unknown): number | null {
   if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
   if (typeof raw === 'string') {
-    const s = raw.trim();
+    // 实测（用户出库表诊断）：公式「销售总金额」返回带货币符号格式化串 "¥18.00"——剥符号/千分位/空白后再数字化
+    const s = raw.replace(/[¥¥$€£,\s]/g, '').trim();
     if (s === '') return null;
     const n = Number(s);
     return Number.isFinite(n) ? n : null;
