@@ -73,5 +73,5 @@
   "receipt.discountLabel": "割引",
   "receipt.payable": "お支払い金額",
   "receipt.printNote": "システムの印刷ダイアログでドライバー導入済みのレシートプリンター（58mm 紙）を選択してください",
-  "receipt.amountField": "金額フィールド（数値/通貨、販売合計額）"
+  "receipt.amountField": "金額フィールド（数値/通貨）"
 }

@@ -73,5 +73,5 @@
   "receipt.discountLabel": "Discount",
   "receipt.payable": "Amount Due",
   "receipt.printNote": "Select the driver-installed receipt printer (58mm paper) in the system print dialog",
-  "receipt.amountField": "Amount Field (Number/Currency, from sales total)"
+  "receipt.amountField": "Amount Field (Number/Currency)"
 }

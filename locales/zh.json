@@ -73,5 +73,5 @@
   "receipt.discountLabel": "折扣",
   "receipt.payable": "应付金额",
   "receipt.printNote": "打印时在系统对话框选择已安装驱动的小票打印机（58mm 纸）",
-  "receipt.amountField": "金额字段（数字/货币，取销售总金额）"
+  "receipt.amountField": "金额字段（数字/货币）"
 }
