@@ -7,6 +7,14 @@
 export const RECEIPT_PAPER_MM = 58;
 export const RECEIPT_CONTENT_MM = 54;
 
+/**
+ * 字段映射类型白名单（js-sdk FieldType 枚举值，实测用户出库表确证）：
+ * 名称 = 文本类；数量/金额 = 数字(2) / 公式(20，销售总金额=单价×数量公式) / 货币(99003)
+ * 公式字段 getValue 对数值公式返回 number，读取层按 typeof 过滤，文本公式自然跳过
+ */
+export const RECEIPT_TEXT_TYPES: readonly number[] = [1, 2, 3, 5, 7, 15, 1005];
+export const RECEIPT_NUMBER_TYPES: readonly number[] = [2, 20, 99003];
+
 /** 出库记录映射后的一行商品（qty/amount 读表可能为 null——空单元格；引擎负责校验） */
 export interface ReceiptItem {
   name: string;

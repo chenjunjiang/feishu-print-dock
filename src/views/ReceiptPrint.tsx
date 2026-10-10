@@ -4,7 +4,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { bitable } from '@lark-base-open/js-sdk';
-import { buildReceipt, generateOrderNo, ReceiptConfig, ReceiptItem, RECEIPT_PAPER_MM, RECEIPT_CONTENT_MM } from '../engine/receipt';
+import { buildReceipt, generateOrderNo, ReceiptConfig, ReceiptItem, RECEIPT_PAPER_MM, RECEIPT_CONTENT_MM, RECEIPT_TEXT_TYPES, RECEIPT_NUMBER_TYPES } from '../engine/receipt';
 import { getSelectedRecordIds, MAX_SELECTED_A } from '../records';
 import { serializeValue } from '../engine/serialize';
 import { configKey, loadConfig, saveConfig } from '../persist';
@@ -14,10 +14,6 @@ interface FieldMeta {
   name: string;
   type: number;
 }
-
-/** 字段类型白名单：名称=文本类，数量/单价=数字或货币（Currency=99003，getValue 返回 number） */
-const TEXT_TYPES = [1, 2, 3, 5, 7, 15, 1005];
-const NUMBER_TYPES = [2, 99003];
 
 const MAX_BRAND_BYTES = 200 * 1024;
 
@@ -97,8 +93,8 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
       }
     })();
   }, [baseId, tableId]);
-  const textFields = allFields.filter((f) => TEXT_TYPES.includes(f.type));
-  const numberFields = allFields.filter((f) => NUMBER_TYPES.includes(f.type));
+  const textFields = allFields.filter((f) => RECEIPT_TEXT_TYPES.includes(f.type));
+  const numberFields = allFields.filter((f) => RECEIPT_NUMBER_TYPES.includes(f.type));
 
   const setCfgField = (patch: Partial<Omit<ReceiptConfig, 'brandImage'>>) => setCfg((c) => ({ ...c, ...patch }));
 

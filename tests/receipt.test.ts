@@ -109,3 +109,15 @@ describe('buildReceipt 计算规则', () => {
     expect(RECEIPT_CONTENT_MM).toBe(54);
   });
 });
+
+// 字段映射白名单：用户出库表实测确证（销售总金额=公式20、销售单价=数字2/货币格式）
+import { RECEIPT_TEXT_TYPES, RECEIPT_NUMBER_TYPES } from '../src/engine/receipt';
+
+describe('字段映射白名单', () => {
+  it('覆盖用户出库表的全部字段类型（商品名称1/销售单价2/出库数量2/销售总金额20公式）', () => {
+    expect(RECEIPT_TEXT_TYPES).toContain(1);   // 商品名称(文本)
+    expect(RECEIPT_NUMBER_TYPES).toContain(2);  // 销售单价/出库数量(数字)
+    expect(RECEIPT_NUMBER_TYPES).toContain(20); // 销售总金额(公式)
+    expect(RECEIPT_NUMBER_TYPES).toContain(99003); // 货币（其他表防御）
+  });
+});
