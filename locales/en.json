@@ -59,7 +59,7 @@
   "receipt.brandTooLarge": "Logo must be ≤200KB",
   "receipt.fieldRequired": "Please complete all three field mappings",
   "receipt.noRenderable": "No printable items (quantity/price must be positive)",
-  "receipt.skipped": "Skipped {{count}} invalid record(s) (empty or non-positive quantity/price)",
+  "receipt.skipped": "Skipped {{count}} invalid record(s) (empty name, or non-positive/empty quantity/price)",
   "receipt.previewNote": "Preview at actual 58mm scale",
   "receipt.orderNoLabel": "No.:",
   "receipt.cashierLabel": "Cashier:",

@@ -50,6 +50,17 @@ describe('buildReceipt 计算规则', () => {
     const r = buildReceipt(items, baseConfig);
     expect(r.lines[0].amountFen).toBe(1000);
     expect(r.totalCount).toBe(0.5);
+    expect(r.totalCountText).toBe('0.5');
+  });
+
+  it('浮点累加残留清理：0.1+0.2 的总数显示 0.3 而非 0.30000000000000004', () => {
+    const items: ReceiptItem[] = [
+      { name: 'a', qty: 0.1, price: 10 },
+      { name: 'b', qty: 0.2, price: 10 },
+    ];
+    const r = buildReceipt(items, baseConfig);
+    expect(r.totalCount).toBeCloseTo(0.3, 10);
+    expect(r.totalCountText).toBe('0.3');
   });
 
   it('折扣：应付 = 小计 - 折扣；折扣超过小计时应付为 0 不为负', () => {
@@ -63,17 +74,18 @@ describe('buildReceipt 计算规则', () => {
     expect(r3.discountFen).toBe(0);
   });
 
-  it('无效行跳过：数量/单价空、非数字、<=0 全部跳过，skippedCount 计数', () => {
+  it('无效行跳过：数量/单价空、非数字、<=0、名称空全部跳过，skippedCount 计数', () => {
     const items: ReceiptItem[] = [
       { name: '有效', qty: 1, price: 10 },
       { name: '零数量', qty: 0, price: 10 },
       { name: '负单价', qty: 1, price: -3 },
-      { name: '空单价', qty: 1, price: null as unknown as number },
+      { name: '空单价', qty: 1, price: null },
       { name: 'NaN数量', qty: NaN, price: 5 },
+      { name: '', qty: 1, price: 10 },
     ];
     const r = buildReceipt(items, baseConfig);
     expect(r.lines).toHaveLength(1);
-    expect(r.skippedCount).toBe(4);
+    expect(r.skippedCount).toBe(5);
   });
 
   it('全部行被跳过：canPrint=false', () => {

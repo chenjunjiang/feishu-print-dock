@@ -59,7 +59,7 @@
   "receipt.brandTooLarge": "品牌图需 ≤200KB",
   "receipt.fieldRequired": "请先完成三个字段映射",
   "receipt.noRenderable": "没有可打印的商品（数量/单价需为正数）",
-  "receipt.skipped": "已跳过 {{count}} 条无效记录（数量/单价为空或非正数）",
+  "receipt.skipped": "已跳过 {{count}} 条无效记录（名称为空，或数量/单价为空、非正数）",
   "receipt.previewNote": "预览为 58mm 实际比例",
   "receipt.orderNoLabel": "单号:",
   "receipt.cashierLabel": "收银:",

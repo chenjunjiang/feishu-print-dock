@@ -1,9 +1,10 @@
 // 小票打印视图：勾选出库记录(一行一商品) -> 字段映射(名称/数量/单价) -> 58mm 小票预览 -> 系统打印
 // 版式与交互按原型 designs/receipt-panel-20261009/finalized.html 还原；计算全部在 engine/receipt.ts
+// review 修复：cfg 变更实时重算（防过期金额上票）/ 折扣字符串镜像（防小数点被吞）/ 品牌图拆键持久化（防按键写放大）/ 并行读记录
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { bitable } from '@lark-base-open/js-sdk';
-import { buildReceipt, ReceiptConfig, ReceiptItem, RECEIPT_PAPER_MM, RECEIPT_CONTENT_MM } from '../engine/receipt';
+import { buildReceipt, generateOrderNo, ReceiptConfig, ReceiptItem, RECEIPT_PAPER_MM, RECEIPT_CONTENT_MM } from '../engine/receipt';
 import { getSelectedRecordIds, MAX_SELECTED_A } from '../records';
 import { serializeValue } from '../engine/serialize';
 import { configKey, loadConfig, saveConfig } from '../persist';
@@ -23,7 +24,24 @@ const MAX_BRAND_BYTES = 200 * 1024;
 const labelStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 4 };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '4px 6px', border: '1px solid var(--pd-border)', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' };
 const hintStyle: React.CSSProperties = { fontSize: 12, color: 'var(--pd-text-secondary)' };
-const dashStyle: React.CSSProperties = { border: 'none', borderTop: '1px dashed #000', margin: '6px 0' };
+
+/** 面板持久化形态（品牌图 dataURL 拆独立键，避免打字路径反复序列化 ~270KB） */
+interface SavedReceipt {
+  cfg: Omit<ReceiptConfig, 'brandImage'>;
+  nameFieldId: string;
+  qtyFieldId: string;
+  priceFieldId: string;
+}
+
+const DEFAULT_CFG: Omit<ReceiptConfig, 'brandImage'> = {
+  storeNameEn: '',
+  storeNameCn: '',
+  orderNo: '',
+  cashier: '',
+  discountYuan: 0,
+  thanks: '',
+  slogan: '',
+};
 
 export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tableId: string }) {
   const { t } = useTranslation();
@@ -31,33 +49,36 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
   const [nameFieldId, setNameFieldId] = useState('');
   const [qtyFieldId, setQtyFieldId] = useState('');
   const [priceFieldId, setPriceFieldId] = useState('');
-  const [cfg, setCfg] = useState<ReceiptConfig>({
-    storeNameEn: '',
-    storeNameCn: '',
-    orderNo: '',
-    cashier: '',
-    discountYuan: 0,
-    thanks: t('receipt.defaultThanks'),
-    slogan: '',
-    brandImage: null,
-  });
-  const [data, setData] = useState<ReturnType<typeof buildReceipt> | null>(null);
+  const [cfg, setCfg] = useState<Omit<ReceiptConfig, 'brandImage'>>({ ...DEFAULT_CFG, thanks: t('receipt.defaultThanks') });
+  const [brandImage, setBrandImage] = useState<string | null>(null);
+  /** 折扣输入镜像：保持原始字符串，避免 Number('12.') 抹掉小数点（10 倍错价根因） */
+  const [discountStr, setDiscountStr] = useState('0');
+  /** 最近一次成功执行的原始行 + 执行时刻（cfg 变更时用它重算，单号/日期保持执行时刻稳定） */
+  const [lastItems, setLastItems] = useState<ReceiptItem[] | null>(null);
+  const execNowRef = useRef<Date>(new Date());
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
-  const printRef = useRef<HTMLDivElement>(null);
   const brandFileRef = useRef<HTMLInputElement>(null);
 
-  // 配置持久化（purpose='receipt'，含字段映射+面板配置+品牌图）
+  const fullCfg: ReceiptConfig = { ...cfg, brandImage };
+  // 实时重算：cfg（含折扣）任何变化都基于最近执行的商品行重出小票，杜绝过期金额
+  const data = lastItems ? buildReceipt(lastItems, fullCfg, execNowRef.current) : null;
+
+  // 配置持久化：主键不含品牌图；品牌图独立键（上传/清除时单独写一次）
   const cfgKey = configKey(baseId, tableId, 'receipt');
+  const brandKey = configKey(baseId, tableId, 'receipt-brand');
   useEffect(() => {
-    const saved = loadConfig<{ cfg: ReceiptConfig; nameFieldId: string; qtyFieldId: string; priceFieldId: string }>(cfgKey);
+    const saved = loadConfig<SavedReceipt>(cfgKey);
+    const savedBrand = loadConfig<string>(brandKey);
     if (saved) {
-      if (saved.cfg) setCfg({ ...saved.cfg });
+      if (saved.cfg) setCfg({ ...DEFAULT_CFG, ...saved.cfg });
       setNameFieldId(saved.nameFieldId || '');
       setQtyFieldId(saved.qtyFieldId || '');
       setPriceFieldId(saved.priceFieldId || '');
+      if (saved.cfg) setDiscountStr(String(saved.cfg.discountYuan ?? 0));
     }
+    if (savedBrand) setBrandImage(savedBrand);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cfgKey]);
   useEffect(() => {
@@ -79,13 +100,22 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
   const textFields = allFields.filter((f) => TEXT_TYPES.includes(f.type));
   const numberFields = allFields.filter((f) => NUMBER_TYPES.includes(f.type));
 
-  const setCfgField = (patch: Partial<ReceiptConfig>) => setCfg((c) => ({ ...c, ...patch }));
+  const setCfgField = (patch: Partial<Omit<ReceiptConfig, 'brandImage'>>) => setCfg((c) => ({ ...c, ...patch }));
 
-  // 读选中记录 -> 映射 ReceiptItem -> buildReceipt
+  // 折扣输入：镜像字符串自由编辑，可解析且 >=0 时才同步到 cfg（进入实时重算）
+  const onDiscountChange = (raw: string) => {
+    setDiscountStr(raw);
+    const n = parseFloat(raw);
+    if (Number.isFinite(n) && n >= 0) setCfgField({ discountYuan: n });
+    if (raw.trim() === '') setCfgField({ discountYuan: 0 });
+  };
+
+  // 读选中记录 -> 并行映射 ReceiptItem -> buildReceipt（记录间并行，200 条 ~1s 内）
   const loadRecords = useCallback(async () => {
     setError('');
     setStatus('');
     setBusy(true);
+    setLastItems(null);
     try {
       const sel = await getSelectedRecordIds(MAX_SELECTED_A);
       if (!sel.ok) {
@@ -100,74 +130,74 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
       const nameField = await table.getField(nameFieldId);
       const qtyField = await table.getField(qtyFieldId);
       const priceField = await table.getField(priceFieldId);
-      const items: ReceiptItem[] = [];
-      for (const recordId of sel.recordIds) {
-        const name = await (async (): Promise<string> => {
-          try {
-            const raw = await nameField.getValue(recordId);
-            const ser = serializeValue('Text', raw);
-            return ser.ok ? ser.text.trim() : '';
-          } catch {
-            return '';
-          }
-        })();
-        // 数字字段原始值就是 number；容错经序列化层
-        let qty: number | null = null;
-        try {
-          const raw = await qtyField.getValue(recordId);
-          qty = typeof raw === 'number' ? raw : null;
-        } catch { qty = null; }
-        let price: number | null = null;
-        try {
-          const raw = await priceField.getValue(recordId);
-          price = typeof raw === 'number' ? raw : null;
-        } catch { price = null; }
-        items.push({ name, qty: qty as number, price });
-      }
-      const r = buildReceipt(items, cfg);
+      const items = await Promise.all(
+        sel.recordIds.map(async (recordId): Promise<ReceiptItem> => {
+          const name = await nameField
+            .getValue(recordId)
+            .then((raw: unknown) => {
+              const ser = serializeValue('Text', raw);
+              return ser.ok ? ser.text.trim() : '';
+            })
+            .catch(() => '');
+          const qty = await qtyField
+            .getValue(recordId)
+            .then((raw: unknown) => (typeof raw === 'number' ? raw : null))
+            .catch(() => null);
+          const price = await priceField
+            .getValue(recordId)
+            .then((raw: unknown) => (typeof raw === 'number' ? raw : null))
+            .catch(() => null);
+          return { name, qty, price };
+        }),
+      );
+      execNowRef.current = new Date();
+      const r = buildReceipt(items, { ...cfg, brandImage }, execNowRef.current);
       if (!r.canPrint) {
         setError(t('receipt.noRenderable'));
-        setData(null);
         return;
       }
       if (r.skippedCount > 0) setStatus(t('receipt.skipped', { count: r.skippedCount }));
-      setData(r);
+      setLastItems(items);
     } catch (e) {
       setError(String(e).slice(0, 150));
     } finally {
       setBusy(false);
     }
-  }, [nameFieldId, qtyFieldId, priceFieldId, cfg, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nameFieldId, qtyFieldId, priceFieldId, t]);
 
   const doPrint = useCallback(() => window.print(), []);
 
-  const onBrandFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (f.size > MAX_BRAND_BYTES) {
-      setError(t('receipt.brandTooLarge'));
-      e.target.value = '';
-      return;
-    }
-    const rd = new FileReader();
-    rd.onload = () => {
-      setCfgField({ brandImage: String(rd.result) });
-      setError('');
-    };
-    rd.readAsDataURL(f);
-  }, [t]);
+  const onBrandFile = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      if (f.size > MAX_BRAND_BYTES) {
+        setError(t('receipt.brandTooLarge'));
+        e.target.value = '';
+        return;
+      }
+      const rd = new FileReader();
+      rd.onload = () => {
+        const dataUrl = String(rd.result);
+        setBrandImage(dataUrl);
+        saveConfig(brandKey, dataUrl); // 品牌图独立键，仅在上传/清除时写一次
+        setError('');
+      };
+      rd.readAsDataURL(f);
+    },
+    [brandKey, t],
+  );
 
   const clearBrand = useCallback(() => {
-    setCfgField({ brandImage: null });
+    setBrandImage(null);
+    saveConfig(brandKey, null);
     if (brandFileRef.current) brandFileRef.current.value = '';
-  }, []);
+  }, [brandKey]);
 
   const newOrderNo = useCallback(() => {
-    const p = (n: number) => String(n).padStart(2, '0');
-    const d = new Date();
-    setCfgField({
-      orderNo: `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`,
-    });
+    // 复用引擎单号生成器（单一真源，防止格式漂移）
+    setCfgField({ orderNo: generateOrderNo() });
   }, []);
 
   // 挂载时追加 @page 58mm 覆盖规则（CSS 层叠后者胜，不依赖 index.html 的 style 结构）+ 打印标记；卸载移除还原 A4
@@ -181,6 +211,11 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
       el.remove();
       document.body.removeAttribute('data-print-receipt');
     };
+  }, []);
+
+  const onOrderNoChange = useCallback((raw: string) => {
+    // 手输单号时关闭后续自动生成（非空即视为用户接管）
+    setCfgField({ orderNo: raw });
   }, []);
 
   const fieldSelect = (value: string, onChange: (v: string) => void, fields: FieldMeta[]) => (
@@ -224,7 +259,7 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
         <label style={labelStyle}>
           {t('receipt.orderNo')}
           <div style={{ display: 'flex', gap: 4 }}>
-            <input type="text" value={cfg.orderNo} placeholder={t('receipt.orderNoAuto') || ''} onChange={(e) => setCfgField({ orderNo: e.target.value })} style={{ ...inputStyle, flex: 1 }} />
+            <input type="text" value={cfg.orderNo} placeholder={t('receipt.orderNoAuto') || ''} onChange={(e) => onOrderNoChange(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
             <button type="button" onClick={newOrderNo} style={{ flex: 'none' }}>{t('receipt.newOrderNo')}</button>
           </div>
         </label>
@@ -236,7 +271,7 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <label style={labelStyle}>
           {t('receipt.discount')}
-          <input type="number" min={0} step={0.01} value={cfg.discountYuan} onChange={(e) => setCfgField({ discountYuan: Number(e.target.value) })} style={inputStyle} />
+          <input type="number" min={0} step={0.01} value={discountStr} onChange={(e) => onDiscountChange(e.target.value)} style={inputStyle} />
         </label>
         <label style={labelStyle}>
           {t('receipt.thanks')}
@@ -251,7 +286,7 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
         {t('receipt.brandImage')}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input type="file" accept="image/png,image/jpeg" ref={brandFileRef} onChange={onBrandFile} style={{ fontSize: 12 }} />
-          {cfg.brandImage && <button type="button" onClick={clearBrand}>{t('receipt.clear')}</button>}
+          {brandImage && <button type="button" onClick={clearBrand}>{t('receipt.clear')}</button>}
         </div>
       </label>
 
@@ -267,7 +302,6 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
           <div style={{ display: 'flex', justifyContent: 'center', background: 'var(--pd-bg)', borderRadius: 6, padding: 12 }}>
             {/* 打印区：58mm 真实比例（1mm≈3.7795px）；打印样式见 index.html @media print */}
             <div
-              ref={printRef}
               data-receipt
               style={{
                 width: `${RECEIPT_PAPER_MM}mm`,
@@ -294,7 +328,7 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
                 <span>{t('receipt.dateLabel')}{data.dateText}</span>
                 <span>{t('receipt.timeLabel')}{data.timeText}</span>
               </div>
-              <hr style={dashStyle} />
+              <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '6px 0' }} />
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
                   <tr>
@@ -313,11 +347,11 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
                   ))}
                 </tbody>
               </table>
-              <hr style={dashStyle} />
+              <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '6px 0' }} />
               <div style={{ fontSize: 11 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
                   <span>{t('receipt.totalCount')}</span>
-                  <span style={{ fontFamily: 'monospace' }}>{data.totalCount}{t('receipt.countUnit')}</span>
+                  <span style={{ fontFamily: 'monospace' }}>{data.totalCountText}{t('receipt.countUnit')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
                   <span>{t('receipt.subtotal')}</span>
@@ -332,9 +366,9 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
                 <span>{t('receipt.payable')}</span>
                 <span style={{ fontFamily: 'monospace' }}>{data.payableText}</span>
               </div>
-              <hr style={dashStyle} />
+              <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '6px 0' }} />
               {cfg.thanks.trim() && <div style={{ textAlign: 'center', fontSize: 11, letterSpacing: 2, margin: '6px 0' }}>{cfg.thanks}</div>}
-              {cfg.brandImage && <img src={cfg.brandImage} alt="" style={{ display: 'block', margin: '4px auto', maxWidth: '30mm', maxHeight: '16mm', objectFit: 'contain' }} />}
+              {brandImage && <img src={brandImage} alt="" style={{ display: 'block', margin: '4px auto', maxWidth: '30mm', maxHeight: '16mm', objectFit: 'contain' }} />}
               {cfg.slogan.trim() && <div style={{ textAlign: 'center', fontSize: 10, color: '#555' }}>{cfg.slogan}</div>}
             </div>
           </div>

@@ -59,7 +59,7 @@
   "receipt.brandTooLarge": "ロゴは 200KB 以下にしてください",
   "receipt.fieldRequired": "3 つのフィールドマッピングを先に完了してください",
   "receipt.noRenderable": "印刷可能な商品がありません（数量/単価は正の数が必要）",
-  "receipt.skipped": "無効なレコード {{count}} 件をスキップしました（数量/単価が空または正でない）",
+  "receipt.skipped": "無効なレコード {{count}} 件をスキップしました（名称が空、または数量/単価が空・正でない）",
   "receipt.previewNote": "プレビューは実際の 58mm スケール",
   "receipt.orderNoLabel": "番号:",
   "receipt.cashierLabel": "レジ:",
