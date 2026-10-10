@@ -41,7 +41,6 @@
   "receipt.fieldMapping": "フィールドマッピング",
   "receipt.nameField": "商品名フィールド（テキスト）",
   "receipt.qtyField": "数量フィールド（数値）",
-  "receipt.priceField": "単価フィールド（数値）",
   "receipt.rowSemantics": "選択した各レコード = レシートの 1 明細行",
   "receipt.receiptInfo": "レシート情報",
   "receipt.storeEn": "店舗名（英語、任意）",
@@ -73,5 +72,6 @@
   "receipt.subtotal": "小計",
   "receipt.discountLabel": "割引",
   "receipt.payable": "お支払い金額",
-  "receipt.printNote": "システムの印刷ダイアログでドライバー導入済みのレシートプリンター（58mm 紙）を選択してください"
+  "receipt.printNote": "システムの印刷ダイアログでドライバー導入済みのレシートプリンター（58mm 紙）を選択してください",
+  "receipt.amountField": "金額フィールド（数値/通貨、販売合計額）"
 }

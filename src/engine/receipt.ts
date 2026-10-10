@@ -1,16 +1,18 @@
 // 小票模式计算引擎（纯函数）：出库记录行 -> 58mm 小票数据
-// spec 锁定：分单位整数运算；行金额逐行 half-up 舍入后再求和（禁止先求和再舍入）；
-// 折扣下限 0、应付不为负；数量/单价空或 <=0、名称为空的行跳过并计数；单号留空自动生成 yyyyMMddHHmmss
+// 金额规则（用户定版）：明细行金额直接取出库表「销售总金额」，不做单价×数量计算；
+// 分单位整数运算，逐行 half-up 舍入后求和；折扣下限 0、应付不为负；
+// 数量/金额空或 <=0、名称为空的行跳过并计数；单号留空自动生成 yyyyMMddHHmmss
 
 /** 纸张常量（mm）：58mm 热敏纸，内容宽 = 纸宽 - 左右各 2mm 边距 */
 export const RECEIPT_PAPER_MM = 58;
 export const RECEIPT_CONTENT_MM = 54;
 
-/** 出库记录映射后的一行商品（qty/price 读表可能为 null——空单元格；引擎负责校验） */
+/** 出库记录映射后的一行商品（qty/amount 读表可能为 null——空单元格；引擎负责校验） */
 export interface ReceiptItem {
   name: string;
   qty: number | null;
-  price: number | null;
+  /** 行金额：直接取客户出库表的「销售总金额」，不做单价×数量计算（客户计算逻辑为准） */
+  amount: number | null;
 }
 
 /** 面板配置（persist 持久化，purpose='receipt'；品牌图 dataURL 拆独立键避免按键写放大） */
@@ -99,20 +101,19 @@ export function buildReceipt(items: ReceiptItem[], config: ReceiptConfig, now: D
   for (const it of items) {
     const name = typeof it.name === 'string' ? it.name.trim() : '';
     const qty = it.qty;
-    const price = it.price;
+    const amount = it.amount;
     const valid =
       name !== '' &&
       typeof qty === 'number' && Number.isFinite(qty) && qty > 0 &&
-      typeof price === 'number' && Number.isFinite(price) && price > 0;
+      typeof amount === 'number' && Number.isFinite(amount) && amount > 0;
     if (!valid) {
       skippedCount += 1;
       continue;
     }
-    // 此分支内 qty/price 已验证为正数（上面复合条件已窄化，类型系统不跨变量，断言安全）
+    // 此分支内 qty/amount 已验证为正数（上面复合条件已窄化，类型系统不跨变量，断言安全）
     const q = qty as number;
-    const pr = price as number;
-    // 逐行 half-up 到分，再累加（spec 禁止先求和再舍入）
-    const amountFen = roundToCents(q * pr);
+    // 行金额直接取表值（客户计算逻辑为准），仅做元->分 half-up 舍入
+    const amountFen = roundToCents(amount as number);
     lines.push({ name, qty: q, amountFen, amountText: fenToText(amountFen) });
     totalCount += q;
     subtotalFen += amountFen;

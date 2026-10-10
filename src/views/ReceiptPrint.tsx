@@ -30,7 +30,7 @@ interface SavedReceipt {
   cfg: Omit<ReceiptConfig, 'brandImage'>;
   nameFieldId: string;
   qtyFieldId: string;
-  priceFieldId: string;
+  amountFieldId: string;
 }
 
 const DEFAULT_CFG: Omit<ReceiptConfig, 'brandImage'> = {
@@ -48,7 +48,7 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
   const [allFields, setAllFields] = useState<FieldMeta[]>([]);
   const [nameFieldId, setNameFieldId] = useState('');
   const [qtyFieldId, setQtyFieldId] = useState('');
-  const [priceFieldId, setPriceFieldId] = useState('');
+  const [amountFieldId, setAmountFieldId] = useState('');
   const [cfg, setCfg] = useState<Omit<ReceiptConfig, 'brandImage'>>({ ...DEFAULT_CFG, thanks: t('receipt.defaultThanks') });
   const [brandImage, setBrandImage] = useState<string | null>(null);
   /** 折扣输入镜像：保持原始字符串，避免 Number('12.') 抹掉小数点（10 倍错价根因） */
@@ -75,15 +75,15 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
       if (saved.cfg) setCfg({ ...DEFAULT_CFG, ...saved.cfg });
       setNameFieldId(saved.nameFieldId || '');
       setQtyFieldId(saved.qtyFieldId || '');
-      setPriceFieldId(saved.priceFieldId || '');
+      setAmountFieldId(saved.amountFieldId || '');
       if (saved.cfg) setDiscountStr(String(saved.cfg.discountYuan ?? 0));
     }
     if (savedBrand) setBrandImage(savedBrand);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cfgKey]);
   useEffect(() => {
-    saveConfig(cfgKey, { cfg, nameFieldId, qtyFieldId, priceFieldId });
-  }, [cfgKey, cfg, nameFieldId, qtyFieldId, priceFieldId]);
+    saveConfig(cfgKey, { cfg, nameFieldId, qtyFieldId, amountFieldId });
+  }, [cfgKey, cfg, nameFieldId, qtyFieldId, amountFieldId]);
 
   // 字段清单：名称下拉=文本类，数量/单价下拉=数字
   useEffect(() => {
@@ -122,14 +122,14 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
         setError(sel.reason!);
         return;
       }
-      if (!nameFieldId || !qtyFieldId || !priceFieldId) {
+      if (!nameFieldId || !qtyFieldId || !amountFieldId) {
         setError(t('receipt.fieldRequired'));
         return;
       }
       const table = await bitable.base.getActiveTable();
       const nameField = await table.getField(nameFieldId);
       const qtyField = await table.getField(qtyFieldId);
-      const priceField = await table.getField(priceFieldId);
+      const amountField = await table.getField(amountFieldId);
       const items = await Promise.all(
         sel.recordIds.map(async (recordId): Promise<ReceiptItem> => {
           const name = await nameField
@@ -143,11 +143,11 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
             .getValue(recordId)
             .then((raw: unknown) => (typeof raw === 'number' ? raw : null))
             .catch(() => null);
-          const price = await priceField
+          const amount = await amountField
             .getValue(recordId)
             .then((raw: unknown) => (typeof raw === 'number' ? raw : null))
             .catch(() => null);
-          return { name, qty, price };
+          return { name, qty, amount };
         }),
       );
       execNowRef.current = new Date();
@@ -164,7 +164,7 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
       setBusy(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nameFieldId, qtyFieldId, priceFieldId, t]);
+  }, [nameFieldId, qtyFieldId, amountFieldId, t]);
 
   const doPrint = useCallback(() => window.print(), []);
 
@@ -240,8 +240,8 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
           {fieldSelect(qtyFieldId, setQtyFieldId, numberFields)}
         </label>
         <label style={labelStyle}>
-          {t('receipt.priceField')}
-          {fieldSelect(priceFieldId, setPriceFieldId, numberFields)}
+          {t('receipt.amountField')}
+          {fieldSelect(amountFieldId, setAmountFieldId, numberFields)}
         </label>
       </div>
       <div style={hintStyle}>{t('receipt.rowSemantics')}</div>
@@ -290,7 +290,7 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
         </div>
       </label>
 
-      <button disabled={busy || !nameFieldId || !qtyFieldId || !priceFieldId} onClick={loadRecords}>
+      <button disabled={busy || !nameFieldId || !qtyFieldId || !amountFieldId} onClick={loadRecords}>
         {t('common.execute')}
       </button>
       {error && <div style={{ color: 'var(--pd-error)', fontSize: 12 }}>{error}</div>}

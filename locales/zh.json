@@ -41,7 +41,6 @@
   "receipt.fieldMapping": "字段映射",
   "receipt.nameField": "商品名称字段（文本）",
   "receipt.qtyField": "数量字段（数字）",
-  "receipt.priceField": "单价字段（数字）",
   "receipt.rowSemantics": "勾选的每行记录 = 小票上的一行商品明细",
   "receipt.receiptInfo": "小票信息",
   "receipt.storeEn": "店名（英文，可空）",
@@ -73,5 +72,6 @@
   "receipt.subtotal": "小计",
   "receipt.discountLabel": "折扣",
   "receipt.payable": "应付金额",
-  "receipt.printNote": "打印时在系统对话框选择已安装驱动的小票打印机（58mm 纸）"
+  "receipt.printNote": "打印时在系统对话框选择已安装驱动的小票打印机（58mm 纸）",
+  "receipt.amountField": "金额字段（数字/货币，取销售总金额）"
 }
