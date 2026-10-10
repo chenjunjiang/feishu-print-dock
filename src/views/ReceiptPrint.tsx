@@ -126,52 +126,30 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
       const nameField = await table.getField(nameFieldId);
       const qtyField = await table.getField(qtyFieldId);
       const amountField = await table.getField(amountFieldId);
-      // 诊断：保留每行原始值形态，全部跳过时随错误展示（定位 js-sdk 真实返回形态）
-      const rawDiag: { name: unknown; qty: unknown; amount: unknown; qtyErr?: string; amountErr?: string }[] = [];
       const items = await Promise.all(
         sel.recordIds.map(async (recordId): Promise<ReceiptItem> => {
-          const diag: { name: unknown; qty: unknown; amount: unknown; qtyErr?: string; amountErr?: string } = { name: null, qty: null, amount: null };
-          rawDiag.push(diag);
           const name = await nameField
             .getValue(recordId)
             .then((raw: unknown) => {
-              diag.name = raw;
               const ser = serializeValue('Text', raw);
               return ser.ok ? ser.text.trim() : '';
             })
-            .catch((e) => {
-              diag.name = `ERR:${String(e).slice(0, 40)}`;
-              return '';
-            });
+            .catch(() => '');
           const qty = await qtyField
             .getValue(recordId)
-            .then((raw: unknown) => {
-              diag.qty = raw;
-              return parseNumeric(raw);
-            })
-            .catch((e) => {
-              diag.qtyErr = String(e).slice(0, 40);
-              return null;
-            });
+            .then((raw: unknown) => parseNumeric(raw))
+            .catch(() => null);
           const amount = await amountField
             .getValue(recordId)
-            .then((raw: unknown) => {
-              diag.amount = raw;
-              return parseNumeric(raw);
-            })
-            .catch((e) => {
-              diag.amountErr = String(e).slice(0, 40);
-              return null;
-            });
+            .then((raw: unknown) => parseNumeric(raw))
+            .catch(() => null);
           return { name, qty, amount };
         }),
       );
       execNowRef.current = new Date();
       const r = buildReceipt(items, { ...cfg, brandImage }, execNowRef.current);
       if (!r.canPrint) {
-        // 诊断模式：真实原始值形态随错误展示（JSON 截断 300 字符），拿到形态后移除
-        const diag = JSON.stringify(rawDiag.slice(0, 3));
-        setError(`${t('receipt.noRenderable')} [诊断] ${diag}`);
+        setError(t('receipt.noRenderable'));
         return;
       }
       if (r.skippedCount > 0) setStatus(t('receipt.skipped', { count: r.skippedCount }));
