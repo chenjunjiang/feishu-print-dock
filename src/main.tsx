@@ -8,6 +8,7 @@ import { initI18n } from './i18n';
 import { detectStorageHealth, StorageHealth } from './persist';
 import LabelPrint from './views/LabelPrint';
 import WordMerge from './views/WordMerge';
+import ReceiptPrint from './views/ReceiptPrint';
 
 initI18n('zh');
 
@@ -18,7 +19,7 @@ window.addEventListener('beforeprint', () => window.scrollTo(0, 0));
 function App() {
   const { t } = useTranslation();
   useTheme();
-  const [tab, setTab] = useState<'label' | 'merge'>('label');
+  const [tab, setTab] = useState<'label' | 'merge' | 'receipt'>('label');
   const [baseId, setBaseId] = useState('');
   const [tableId, setTableId] = useState('');
   const [storageHealth, setStorageHealth] = useState<StorageHealth>('ok');
@@ -60,11 +61,16 @@ function App() {
         <button style={tabStyle(tab === 'merge')} onClick={() => setTab('merge')}>
           {t('tab.merge')}
         </button>
+        <button style={tabStyle(tab === 'receipt')} onClick={() => setTab('receipt')}>
+          {t('tab.receipt')}
+        </button>
       </div>
       {tab === 'label' ? (
         <LabelPrint baseId={baseId || 'unknown'} tableId={tableId || 'unknown'} />
-      ) : (
+      ) : tab === 'merge' ? (
         <WordMerge baseId={baseId || 'unknown'} tableId={tableId || 'unknown'} />
+      ) : (
+        <ReceiptPrint baseId={baseId || 'unknown'} tableId={tableId || 'unknown'} />
       )}
     </div>
   );
