@@ -4,7 +4,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { bitable } from '@lark-base-open/js-sdk';
-import { buildReceipt, generateOrderNo, ReceiptConfig, ReceiptItem, RECEIPT_PAPER_MM, RECEIPT_CONTENT_MM, RECEIPT_TEXT_TYPES, RECEIPT_NUMBER_TYPES } from '../engine/receipt';
+import { buildReceipt, generateOrderNo, parseNumeric, ReceiptConfig, ReceiptItem, RECEIPT_PAPER_MM, RECEIPT_CONTENT_MM, RECEIPT_TEXT_TYPES, RECEIPT_NUMBER_TYPES } from '../engine/receipt';
 import { getSelectedRecordIds, MAX_SELECTED_A } from '../records';
 import { serializeValue } from '../engine/serialize';
 import { configKey, loadConfig, saveConfig } from '../persist';
@@ -137,11 +137,11 @@ export default function ReceiptPrint({ baseId, tableId }: { baseId: string; tabl
             .catch(() => '');
           const qty = await qtyField
             .getValue(recordId)
-            .then((raw: unknown) => (typeof raw === 'number' ? raw : null))
+            .then((raw: unknown) => parseNumeric(raw))
             .catch(() => null);
           const amount = await amountField
             .getValue(recordId)
-            .then((raw: unknown) => (typeof raw === 'number' ? raw : null))
+            .then((raw: unknown) => parseNumeric(raw))
             .catch(() => null);
           return { name, qty, amount };
         }),

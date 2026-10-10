@@ -97,6 +97,22 @@ export function generateOrderNo(now: Date = new Date()): string {
 }
 
 /**
+ * 宽松数字化：SDK 字段值 -> number | null。
+ * 实测形态：数字字段可能返回 number 或字符串 "18"（OpenAPI 形态），公式字段返回 number；
+ * 空串/纯空白/非数字/无限值一律 null（由 buildReceipt 跳过并计数）
+ */
+export function parseNumeric(raw: unknown): number | null {
+  if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === 'string') {
+    const s = raw.trim();
+    if (s === '') return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+/**
  * 纯计算入口：items（已映射的出库行）+ 面板配置 -> 小票数据。
  * 无效行（名称为空；qty/price 为 null、非数字、<=0）跳过并计入 skippedCount。
  */

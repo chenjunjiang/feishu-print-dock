@@ -121,3 +121,27 @@ describe('字段映射白名单', () => {
     expect(RECEIPT_NUMBER_TYPES).toContain(99003); // 货币（其他表防御）
   });
 });
+
+// parseNumeric：实测 SDK/OpenAPI 数字字段可能返回字符串 "18"，公式返回 number——两者都要命中
+import { parseNumeric } from '../src/engine/receipt';
+
+describe('parseNumeric 宽松数字化', () => {
+  it('number 直通（含小数），非有限数（NaN/Infinity）-> null', () => {
+    expect(parseNumeric(18)).toBe(18);
+    expect(parseNumeric(18.5)).toBe(18.5);
+    expect(parseNumeric(NaN)).toBeNull();
+    expect(parseNumeric(Infinity)).toBeNull();
+  });
+  it('字符串数字（OpenAPI 形态 "18"）-> number；空白串 -> null', () => {
+    expect(parseNumeric('18')).toBe(18);
+    expect(parseNumeric(' 36.5 ')).toBe(36.5);
+    expect(parseNumeric('')).toBeNull();
+    expect(parseNumeric('   ')).toBeNull();
+    expect(parseNumeric('abc')).toBeNull();
+  });
+  it('null/undefined/对象 -> null', () => {
+    expect(parseNumeric(null)).toBeNull();
+    expect(parseNumeric(undefined)).toBeNull();
+    expect(parseNumeric({ type: 20, value: 18 })).toBeNull();
+  });
+});
