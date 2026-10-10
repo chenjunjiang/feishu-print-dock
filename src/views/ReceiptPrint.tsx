@@ -15,9 +15,9 @@ interface FieldMeta {
   type: number;
 }
 
-/** 字段类型白名单：名称=文本类，数量/单价=数字 */
+/** 字段类型白名单：名称=文本类，数量/单价=数字或货币（Currency=99003，getValue 返回 number） */
 const TEXT_TYPES = [1, 2, 3, 5, 7, 15, 1005];
-const NUMBER_TYPES = [2];
+const NUMBER_TYPES = [2, 99003];
 
 const MAX_BRAND_BYTES = 200 * 1024;
 
