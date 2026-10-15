@@ -18,7 +18,7 @@ interface FieldMeta {
   type: number;
 }
 
-/** 字段 type 数值 -> 白名单类型名（js-sdk FieldType 枚举对齐） */
+/** 字段 type 数值 -> 白名单类型名（js-sdk FieldType 枚举对齐）；19=查找引用，值按文本序列化（serializeValue 兜底数组/富文本段） */
 const TYPE_MAP: Record<number, FieldTypeName> = {
   1: 'Text',
   2: 'Number',
@@ -26,6 +26,7 @@ const TYPE_MAP: Record<number, FieldTypeName> = {
   5: 'DateTime',
   7: 'Checkbox',
   15: 'Url',
+  19: 'Text',
   1005: 'AutoNumber',
 };
 

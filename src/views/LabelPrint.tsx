@@ -76,7 +76,8 @@ export default function LabelPrint({ baseId, tableId }: { baseId: string; tableI
         setAttachmentFields(metas.filter((f) => f.type === 17).map((f) => ({ id: f.id, name: f.name, type: f.type })));
         setTextFields(
           metas
-            .filter((f) => [1, 2, 3, 5, 7, 15, 1005].includes(f.type))
+            // 19=查找引用：标题常从商品表引用而来，序列化走 serializeValue('Text') 兜底
+            .filter((f) => [1, 2, 3, 5, 7, 15, 1005, 19].includes(f.type))
             .map((f) => ({ id: f.id, name: f.name, type: f.type })),
         );
       } catch (e) {

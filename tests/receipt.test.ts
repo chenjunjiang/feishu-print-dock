@@ -120,6 +120,11 @@ describe('字段映射白名单', () => {
     expect(RECEIPT_NUMBER_TYPES).toContain(20); // 销售总金额(公式)
     expect(RECEIPT_NUMBER_TYPES).toContain(99003); // 货币（其他表防御）
   });
+
+  it('查找引用(19)在名称与数量/金额白名单内（2026-10-14 用户反馈：商品名称为查找引用字段时下拉选不上）', () => {
+    expect(RECEIPT_TEXT_TYPES).toContain(19);
+    expect(RECEIPT_NUMBER_TYPES).toContain(19);
+  });
 });
 
 // parseNumeric：实测 SDK/OpenAPI 数字字段可能返回字符串 "18"，公式返回 number——两者都要命中

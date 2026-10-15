@@ -26,6 +26,14 @@ describe('各类型序列化', () => {
     expect(serializeValue('Text', [{ type: 'text', text: '订单' }, { type: 'text', text: 'A-1' }]).text).toBe('订单A-1');
   });
 
+  it('查找引用(type 19)值形态兼容：文本段数组/字符串数组/嵌套数组/空值（2026-10-14 用户反馈）', () => {
+    expect(serializeValue('Text', [{ type: 'text', text: '木' }]).text).toBe('木');
+    expect(serializeValue('Text', ['木']).text).toBe('木');
+    expect(serializeValue('Text', [['木'], ['火']]).text).toBe('木，火');
+    expect(serializeValue('Text', null).ok).toBe(true);
+    expect(serializeValue('Text', null).text).toBe('');
+  });
+
   it('Number：数字直转', () => {
     expect(serializeValue('Number', 42.5).text).toBe('42.5');
   });

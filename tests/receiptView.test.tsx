@@ -1,12 +1,13 @@
 // ReceiptPrint 组件测试（原则 25）：tab 挂载/@page 切换/表单渲染
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, cleanup, fireEvent } from '@testing-library/react';
+import { render, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
 // js-sdk 无浏览器环境，mock 掉 bitable（组件级测试只验渲染与挂载行为，不连真表——真表链路由浏览器 E2E 覆盖）
 vi.mock('@lark-base-open/js-sdk', () => ({ bitable: { base: { getActiveTable: vi.fn(), getSelection: vi.fn() } } }));
 
 import ReceiptPrint from '../src/views/ReceiptPrint';
+import { bitable } from '@lark-base-open/js-sdk';
 
 describe('ReceiptPrint 组件', () => {
   beforeEach(() => {
@@ -48,6 +49,28 @@ describe('ReceiptPrint 组件', () => {
     // 配置持久化写入了 localStorage（purpose=receipt 键空间）
     const keys = Object.keys(localStorage);
     expect(keys.some((k) => k.includes('receipt'))).toBe(true);
+    unmount();
+  });
+
+  it('名称下拉包含查找引用字段(type 19)，数量下拉同样兼容（2026-10-14 用户反馈回归锚）', async () => {
+    vi.mocked(bitable.base.getActiveTable).mockResolvedValue({
+      getFieldMetaList: async () => [
+        { id: 'f1', name: '出库单号', type: 1 },
+        { id: 'fname', name: '商品名称', type: 19 },
+        { id: 'fqty', name: '出库数量', type: 2 },
+        { id: 'fqtyLk', name: '引用库存', type: 19 },
+      ],
+    } as never);
+    const { unmount } = render(<ReceiptPrint baseId="b" tableId="t" />);
+    await waitFor(() => {
+      expect(document.querySelectorAll('select')[0]?.textContent).toContain('商品名称');
+    });
+    const selects = document.querySelectorAll('select');
+    const nameOpts = Array.from(selects[0].querySelectorAll('option')).map((o) => o.textContent);
+    expect(nameOpts).toContain('商品名称'); // 查找引用字段出现在名称下拉（本次 bug）
+    expect(nameOpts).toContain('出库单号'); // 原有文本字段不受影响（兼容而非替换）
+    const qtyOpts = Array.from(selects[1].querySelectorAll('option')).map((o) => o.textContent);
+    expect(qtyOpts).toContain('引用库存'); // 数量侧同样接受查找引用（parseNumeric 兜底数组取首项）
     unmount();
   });
 });
