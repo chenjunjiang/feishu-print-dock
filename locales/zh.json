@@ -43,6 +43,11 @@
   "receipt.qtyField": "数量字段（数字）",
   "receipt.rowSemantics": "勾选的每行记录 = 小票上的一行商品明细",
   "receipt.receiptInfo": "小票信息",
+  "receipt.paperWidth": "纸张宽度",
+  "receipt.paper58": "58mm（标准小票）",
+  "receipt.paper40": "40mm（窄卷）",
+  "receipt.paper80": "80mm（宽卷）",
+  "receipt.paperHint": "选择后自动保存；打印时按所选宽度声明纸张尺寸，无需再调驱动",
   "receipt.storeEn": "店名（英文，可空）",
   "receipt.storeCn": "店名（中文）",
   "receipt.orderNo": "单号",
@@ -59,7 +64,7 @@
   "receipt.fieldRequired": "请先完成三个字段映射",
   "receipt.noRenderable": "没有可打印的商品（数量/单价需为正数）",
   "receipt.skipped": "已跳过 {{count}} 条无效记录（名称为空，或数量/单价为空、非正数）",
-  "receipt.previewNote": "预览为 58mm 实际比例",
+  "receipt.previewNote": "预览为 {{width}}mm 实际比例",
   "receipt.orderNoLabel": "单号:",
   "receipt.cashierLabel": "收银:",
   "receipt.dateLabel": "日期:",
@@ -72,6 +77,6 @@
   "receipt.subtotal": "小计",
   "receipt.discountLabel": "折扣",
   "receipt.payable": "应付金额",
-  "receipt.printNote": "打印时在系统对话框选择已安装驱动的小票打印机（58mm 纸）",
+  "receipt.printNote": "打印时在系统对话框选择已安装驱动的小票打印机；纸张尺寸已按所选宽度自动声明",
   "receipt.amountField": "金额字段（数字/货币）"
 }

@@ -3,9 +3,28 @@
 // 分单位整数运算，逐行 half-up 舍入后求和；折扣下限 0、应付不为负；
 // 数量/金额空或 <=0、名称为空的行跳过并计数；单号留空自动生成 yyyyMMddHHmmss
 
-/** 纸张常量（mm）：58mm 热敏纸，内容宽 = 纸宽 - 左右各 2mm 边距 */
-export const RECEIPT_PAPER_MM = 58;
-export const RECEIPT_CONTENT_MM = 54;
+/**
+ * 纸张规格表（mm）：内容宽 = 纸宽 - 左右各 2mm 边距。
+ * 三档来源：58/80 为热敏小票主流宽度；40 窄卷（2026-10-16 客户反馈：XP-58 驱动默认 58mm，
+ * 40mm 纸用户每次打印都要手动调驱动——根因是旧 @page 写法 "58mm auto" 不合 CSS 规范被 Chrome 丢弃）。
+ * fontScale：40mm 内容宽 36/54≈0.667 字号等比微缩防挤压；58/80 不缩放（80mm 每行更宽即可）。
+ */
+export interface ReceiptPaperSpec {
+  widthMm: number;
+  contentMm: number;
+  fontScale: number;
+}
+export const RECEIPT_PAPERS: readonly ReceiptPaperSpec[] = [
+  { widthMm: 58, contentMm: 54, fontScale: 1 },
+  { widthMm: 40, contentMm: 36, fontScale: 36 / 54 },
+  { widthMm: 80, contentMm: 76, fontScale: 1 },
+];
+export const DEFAULT_RECEIPT_PAPER_MM = 58;
+
+/** 未知宽度回退默认 58mm（旧版本持久化数据/损坏值兼容） */
+export function paperSpecOf(widthMm: number): ReceiptPaperSpec {
+  return RECEIPT_PAPERS.find((p) => p.widthMm === widthMm) ?? RECEIPT_PAPERS[0];
+}
 
 /**
  * 字段映射类型白名单（js-sdk FieldType 枚举值，实测用户出库表确证）：

@@ -43,6 +43,11 @@
   "receipt.qtyField": "Quantity Field (Number)",
   "receipt.rowSemantics": "Each selected record = one item line on the receipt",
   "receipt.receiptInfo": "Receipt Info",
+  "receipt.paperWidth": "Paper Width",
+  "receipt.paper58": "58mm (standard receipt)",
+  "receipt.paper40": "40mm (narrow roll)",
+  "receipt.paper80": "80mm (wide roll)",
+  "receipt.paperHint": "Saved automatically; printing declares the selected paper size — no driver adjustment needed",
   "receipt.storeEn": "Store Name (English, optional)",
   "receipt.storeCn": "Store Name (Chinese)",
   "receipt.orderNo": "Order No.",
@@ -59,7 +64,7 @@
   "receipt.fieldRequired": "Please complete all three field mappings",
   "receipt.noRenderable": "No printable items (quantity/price must be positive)",
   "receipt.skipped": "Skipped {{count}} invalid record(s) (empty name, or non-positive/empty quantity/price)",
-  "receipt.previewNote": "Preview at actual 58mm scale",
+  "receipt.previewNote": "Preview at actual {{width}}mm scale",
   "receipt.orderNoLabel": "No.:",
   "receipt.cashierLabel": "Cashier:",
   "receipt.dateLabel": "Date:",
@@ -72,6 +77,6 @@
   "receipt.subtotal": "Subtotal",
   "receipt.discountLabel": "Discount",
   "receipt.payable": "Amount Due",
-  "receipt.printNote": "Select the driver-installed receipt printer (58mm paper) in the system print dialog",
+  "receipt.printNote": "Select the driver-installed receipt printer in the system print dialog; paper size is declared from the selected width automatically",
   "receipt.amountField": "Amount Field (Number/Currency)"
 }

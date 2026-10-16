@@ -2,10 +2,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildReceipt,
+  paperSpecOf,
   ReceiptItem,
   ReceiptConfig,
-  RECEIPT_PAPER_MM,
-  RECEIPT_CONTENT_MM,
+  RECEIPT_PAPERS,
+  DEFAULT_RECEIPT_PAPER_MM,
 } from '../src/engine/receipt';
 
 const baseConfig: ReceiptConfig = {
@@ -104,9 +105,19 @@ describe('buildReceipt 计算规则', () => {
     expect(no.generatedOrderNo).toMatch(/^20261009103000$/);
   });
 
-  it('纸张常量锁定：58mm 纸宽 54mm 内容宽', () => {
-    expect(RECEIPT_PAPER_MM).toBe(58);
-    expect(RECEIPT_CONTENT_MM).toBe(54);
+  it('纸张规格表：58/40/80 三档，内容宽=纸宽-4mm，40mm 字号等比微缩', () => {
+    expect(RECEIPT_PAPERS.map((p) => p.widthMm)).toEqual([58, 40, 80]);
+    expect(paperSpecOf(58)).toEqual({ widthMm: 58, contentMm: 54, fontScale: 1 });
+    expect(paperSpecOf(40).contentMm).toBe(36);
+    expect(paperSpecOf(40).fontScale).toBeCloseTo(36 / 54, 5); // 0.667 等比微缩
+    expect(paperSpecOf(80)).toEqual({ widthMm: 80, contentMm: 76, fontScale: 1 }); // 宽卷不缩放
+    expect(DEFAULT_RECEIPT_PAPER_MM).toBe(58);
+  });
+
+  it('未知纸张宽度回退默认 58mm（旧持久化数据/损坏值兼容）', () => {
+    expect(paperSpecOf(0).widthMm).toBe(58);
+    expect(paperSpecOf(999).widthMm).toBe(58);
+    expect(paperSpecOf(NaN).widthMm).toBe(58);
   });
 });
 

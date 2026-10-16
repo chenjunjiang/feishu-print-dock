@@ -36,17 +36,19 @@
         size: A4 portrait;
         margin: 0;
       }
-      /* 小票 tab 挂载时由 ReceiptPrint 动态改写为 @page 58mm auto（@page 无法按 class 切换） */
-      /* 小票打印区：仅 [data-receipt] 可见（与 .print-area 同机制） */
+      /* 小票 tab 挂载时由 ReceiptPrint 动态注入 @page（宽=所选纸张 40/58/80mm，beforeprint 实测内容高度）；
+         主打印路径是独立窗口（iframe 内 @page 够不着外层框架），此处为原地兜底 + 独立声明 */
+      /* 小票原地打印兜底：ReceiptPrint 在 beforeprint 把小票克隆到 #pd-print-root，
+         body 其余子树 display:none——visibility:hidden 不释放布局高度，表单残留高度会分页出空白页 */
       @media print {
-        body[data-print-receipt] [data-receipt],
-        body[data-print-receipt] [data-receipt] * {
-          visibility: visible;
+        body[data-print-receipt] > *:not(#pd-print-root) {
+          display: none !important;
         }
-        body[data-print-receipt] [data-receipt] {
-          position: absolute;
-          left: 0;
-          top: 0;
+        #pd-print-root,
+        #pd-print-root * {
+          visibility: visible !important;
+        }
+        #pd-print-root [data-receipt] {
           box-shadow: none !important;
         }
       }

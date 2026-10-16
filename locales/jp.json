@@ -43,6 +43,11 @@
   "receipt.qtyField": "数量フィールド（数値）",
   "receipt.rowSemantics": "選択した各レコード = レシートの 1 明細行",
   "receipt.receiptInfo": "レシート情報",
+  "receipt.paperWidth": "用紙幅",
+  "receipt.paper58": "58mm（標準レシート）",
+  "receipt.paper40": "40mm（狭幅ロール）",
+  "receipt.paper80": "80mm（広幅ロール）",
+  "receipt.paperHint": "選択後は自動保存。印刷時に選択した幅で用紙サイズを指定するため、ドライバー調整は不要です",
   "receipt.storeEn": "店舗名（英語、任意）",
   "receipt.storeCn": "店舗名（中国語）",
   "receipt.orderNo": "注文番号",
@@ -59,7 +64,7 @@
   "receipt.fieldRequired": "3 つのフィールドマッピングを先に完了してください",
   "receipt.noRenderable": "印刷可能な商品がありません（数量/単価は正の数が必要）",
   "receipt.skipped": "無効なレコード {{count}} 件をスキップしました（名称が空、または数量/単価が空・正でない）",
-  "receipt.previewNote": "プレビューは実際の 58mm スケール",
+  "receipt.previewNote": "プレビューは実際の {{width}}mm スケール",
   "receipt.orderNoLabel": "番号:",
   "receipt.cashierLabel": "レジ:",
   "receipt.dateLabel": "日付:",
@@ -72,6 +77,6 @@
   "receipt.subtotal": "小計",
   "receipt.discountLabel": "割引",
   "receipt.payable": "お支払い金額",
-  "receipt.printNote": "システムの印刷ダイアログでドライバー導入済みのレシートプリンター（58mm 紙）を選択してください",
+  "receipt.printNote": "システムの印刷ダイアログでドライバー導入済みのレシートプリンターを選択してください（用紙サイズは選択幅で自動指定されます）",
   "receipt.amountField": "金額フィールド（数値/通貨）"
 }
