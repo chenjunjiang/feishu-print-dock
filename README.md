@@ -19,6 +19,16 @@ npm run build      # 产物 dist/（须提交，官方托管契约）
 - useTheme 浅深主题；垂直布局适配侧栏宽度；变化监听
 - 数据安全：记录与模板内容不主动上传（依赖全 npm 内嵌，无 CDN/遥测）
 
-## 上架链路
+## 发布链路
 
-GitHub 仓库 → Replit 导入 → publish → 上架表单（Task 0 阻断项见 SPEC）
+```
+本仓库(gitee monorepo, 工作区备份)
+  → git subtree split -P feishu_print_dock -b print-dock-export
+  → push print-dock-export 到 github.com/chenjunjiang/feishu-print-dock 的 main 分支
+  → Vercel(Gumu1 team) 自动部署生产 → print-dock.snapdiff.app
+```
+
+- 注意：只推 gitee **不会**触发部署；必须 split 后推 GitHub main（Vercel 只接 GitHub，不认 gitee）
+- split 分支命名 `print-dock-export`；其他子项目同理（feishu-qr-shortcut / feishu-qr-scan-shortcut / feishu-img-watermark-shortcut 各有独立 GitHub 仓库）
+- CLI 直接 `vercel --prod` 会被 commit 作者校验拦（全局 git email 是占位邮箱 example.com，非团队成员）——走上面的 split 推送即可
+- 上架表单：随 Vercel 生产地址提交（Task 0 阻断项见 SPEC）
